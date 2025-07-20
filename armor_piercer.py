@@ -5,7 +5,7 @@ import time
 import sys
 
 # --- OPERASYONEL AYARLAR ---
-TARGET_URL = 'https://www.azatutyun.am/' 
+TARGET_URL = 'https://www.2dehands.be/' 
 WORKER_COUNT = 750
 # ----------------------------
 
