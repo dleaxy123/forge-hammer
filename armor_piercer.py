@@ -10,7 +10,7 @@ except ImportError:
     print("[ÇÖZÜM] Lütfen terminale 'pip install -U curl_cffi' komutunu yazarak kütüphaneyi kurun.")
     sys.exit(1)
 
-HEDEF_URL = 'https://www.etonline.edu.et/' 
+HEDEF_URL = 'https://www.kaspersky.com.tr/' 
 THREAD_SAYISI = 1000 
 
 basarili_istekler = 0
