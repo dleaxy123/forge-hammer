@@ -10,7 +10,7 @@ except ImportError:
     print("[ÇÖZÜM] Lütfen terminale 'pip install -U curl_cffi' komutunu yazarak kütüphaneyi kurun.")
     sys.exit(1)
 
-HEDEF_URL = 'https://www.gov.il/' 
+HEDEF_URL = 'https://www.expressvpn.com/' 
 THREAD_SAYISI = 5000 
 
 basarili_istekler = 0
